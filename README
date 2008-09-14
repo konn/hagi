@@ -1,0 +1,11 @@
+HaGi - Haskell Grass Interpreter
+(c) Hiromi Ishii 2008-2009
+
+Requirement
+  utf8-string (http://hackage.haskell.org/cgi-bin/hackage-scripts/package/utf8-string)
+
+Instllation
+  ghc --make HaGi.hs
+
+Usage
+  ./Hagi source.www
