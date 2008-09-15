@@ -1,6 +1,7 @@
-{-# OPTIONS -fglasgow-exts #-}
+{-# OPTIONS -fglasgow-exts -package utf8-string #-}
 module Main where
 import System
+import System.IO
 import Data.Char
 import Text.ParserCombinators.Parsec hiding (letter, parse, parseTest)
 import qualified Text.ParserCombinators.Parsec as P (parse, parseTest)
@@ -78,7 +79,9 @@ trans = do  gs <- get
   where mproc :: Code -> Code -> Environment -> Dump -> GState IO ()
         mproc Succ = charP (\k -> return $ Char (chr $ (ord k+1)`mod`256) )
         mproc Out = charP (\k -> (liftIO$U.putStr [k])>>(return$Char k))
-        mproc In  = charP (\k -> ((liftIO getChar) >>= (return.Char)))
+        mproc In  = (\arg e d -> do cond <- (liftIO isEOF)
+                                    t <- if cond then return arg else (return.Char)=<<(liftIO getChar)
+                                    put $ GS (C []) (F (t, e):e) d)
         mproc (Char k) = (\(Char c) e d -> put ( GS (C [Abs 1 [], Abs 2 [App 3 (if k == c then 2 else 1)]]) e d))
         charP expr arg e d = case arg of
                       (Char k) -> do{t<-expr k;put $ GS (C []) (F (t, e):e) d}
