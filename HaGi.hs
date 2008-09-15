@@ -2,7 +2,7 @@
 module Main where
 import System
 import Data.Char
-import Text.ParserCombinators.Parsec hiding (parse, parseTest)
+import Text.ParserCombinators.Parsec hiding (letter, parse, parseTest)
 import qualified Text.ParserCombinators.Parsec as P (parse, parseTest)
 import qualified System.IO.UTF8 as U
 import Control.Monad.State
@@ -33,26 +33,31 @@ parse p src = case runParser  prog () "" src of
                 Left  err -> error(show err)
                 Right rsl -> rsl
 
-letter c = skipMany$noneOf "wWvｗＷｖ" >> char letter
+letter c = do{ign;k<-char c;ign;return k}
+  where ign = (skipMany$noneOf "wWvｗＷｖ")
 
 small = letter 'w' <|> (letter 'ｗ' <?> "\"ｗ\"")
 big   = letter 'W' <|> (letter 'Ｗ' <?> "\"Ｗ\"")
 v     = letter 'v' <|> (letter 'ｖ' <?> "\"ｖ\"")
 
 abst = do args <- many1 small
-          body <- many appl
+          body <- appl
           return $ Abs (length args) body
 
-appl = do func <- many1 big
+appl = many appp 
+
+appp = do func <- many1 big
           arg  <- many1 small
           return $ App (length func) (length arg)
-prog = do skipMany$noneOf "w"
+
+prog = do skipMany$noneOf "wｗ"
           head <- abst
           rest <- option [] (v >> body)
+          skipMany$noneOf "wWvｗＷｖ"
           eof
           return (head:rest)
 
-body = do rest <- (try(count 1 abst)<|>try(many appl))`sepBy`v
+body = do rest <- (count 1 abst <|> appl)`sepBy`v
           return $ concat rest
 
 evaluate = do gs <- get
@@ -84,5 +89,3 @@ main = do args <- getArgs
                   (x:_) -> U.readFile x
                   _     -> U.getContents
           execStateT evaluate (mkGS$parse prog s)
-
- concatMap (\c->if c`elem`"wWvｗＷｖ"then [c]else[])
