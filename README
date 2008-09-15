@@ -1,5 +1,5 @@
-HaGi - Haskell Grass Interpreter
-(c) Hiromi Ishii 2008-2009
+HaGi - Haskell Grass Interpreter 1.0b1
+Copyright (c) Hiromi Ishii 2008
 
 Requirement
   utf8-string (http://hackage.haskell.org/cgi-bin/hackage-scripts/package/utf8-string)
@@ -11,4 +11,4 @@ Usage
   ./Hagi source.www
 
 ToDo
-  Implement feature of Charactor function
+  Tuneup
