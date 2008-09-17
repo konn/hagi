@@ -9,14 +9,18 @@ import qualified System.IO.UTF8 as U
 import Control.Monad.State
 import Control.Monad.Trans
 import Codec.Binary.UTF8.String
-
+import Numeric
+import Data.List
+import Data.Ix
 
 uGetChar = do c <- getChar
-              if isAscii c
-                then  return c
-                else  do  c1 <- getChar
-                          c2 <- getChar
-                          return$head$decodeString[c,c1,c2]
+              rs <- sub (head$findIndices(`inRange`ord c) [(0x00,0x7f),(0xc2,0xdf),(0xe0,0xef),(0xf0,0xf7),(0xf8,0xfb),(0xfc,0xfd)]) []
+              return$head$decodeString(c:rs)
+  where sub c xs | c <= 0    = return$reverse xs
+                 | otherwise = getChar >>= sub (c-1) . (:xs)
+                                  
+
+showBin = flip(showIntAtBase 2 intToDigit) ""
 
 data Inst = App Int Int | Abs Int [Inst] deriving Show
 
