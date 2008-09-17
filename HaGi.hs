@@ -8,6 +8,15 @@ import qualified Text.ParserCombinators.Parsec as P (parse, parseTest)
 import qualified System.IO.UTF8 as U
 import Control.Monad.State
 import Control.Monad.Trans
+import Codec.Binary.UTF8.String
+
+
+uGetChar = do c <- getChar
+              if isAscii c
+                then  return c
+                else  do  c1 <- getChar
+                          c2 <- getChar
+                          return$head$decodeString[c,c1,c2]
 
 data Inst = App Int Int | Abs Int [Inst] deriving Show
 
@@ -80,7 +89,7 @@ trans = do  gs <- get
         mproc Succ = charP (\k -> return $ Char (chr $ (ord k+1)`mod`256) )
         mproc Out = charP (\k -> (liftIO$U.putStr [k])>>(return$Char k))
         mproc In  = (\arg e d -> do cond <- (liftIO isEOF)
-                                    t <- if cond then return arg else (return.Char)=<<(liftIO getChar)
+                                    t <- if cond then return arg else (return.Char)=<<(liftIO uGetChar)
                                     put $ GS (C []) (F (t, e):e) d)
         mproc (Char k) = (\(Char c) e d -> put ( GS (C [Abs 1 [], Abs 2 [App 3 (if k == c then 2 else 1)]]) e d))
         charP expr arg e d = case arg of
