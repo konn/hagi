@@ -18,9 +18,6 @@ uGetChar = do c <- getChar
               return$head$decodeString(c:rs)
   where sub c xs | c <= 0    = return$reverse xs
                  | otherwise = getChar >>= sub (c-1) . (:xs)
-                                  
-
-showBin = flip(showIntAtBase 2 intToDigit) ""
 
 data Inst = App Int Int | Abs Int [Inst] deriving Show
 
@@ -105,3 +102,4 @@ main = do args <- getArgs
                   (x:_) -> U.readFile x
                   _     -> U.getContents
           execStateT evaluate (mkGS$parse prog s)
+          return ()
